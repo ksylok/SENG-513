@@ -1,0 +1,131 @@
+/* CSS Stylesheet for the default selectors */
+
+body{
+    font-family: "Raleway", sans-serif;
+    height: 100%;
+	width: 100%;
+	margin: 0 auto;
+}
+
+header{
+	height: 150px;
+    width: 103%;
+	font-size: 40px;
+    color: white;
+	text-align: center;
+    text-indent: -70px;
+    line-height: 140px;
+	display: block;
+    position: auto;
+    padding-top: 12px;
+    margin-left: -16px;
+}
+
+footer{
+    background-image: url(banner.png);
+    background-size: 100% 100%;
+    background-position: 100px;
+    background-repeat: no-repeat;
+    background-color: #1b9dcf;
+	height: 170px;
+    width: auto;
+	font-size: 40px;
+}
+
+table{
+    width: 100%;
+    border: 1px solid #61605f;
+    border-right: 1px solid #61605f;
+}
+
+th, td{
+    text-align: left;
+    padding: 8px;
+}
+
+th{
+    background-color: #1b9dcf;
+    color: white;
+}
+
+tr:nth-child(even){
+    background-color: #f2f2f2; 
+}
+
+ul.bullet{
+    list-style-type: circle;
+}
+
+.menu ul{ /* for the menu bar */
+    margin: 0px;
+    padding: 0px;
+    width: 170px;
+    background-color: #61605f;
+    height: 100%;
+    position: fixed;
+    text-align: right;
+}
+
+li a{
+    display: block;
+    color: white;
+    width: auto;
+    padding: 12px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: white;
+    color: #61605f;
+}
+
+.button a:link, .button a:visited {
+    background-color: white;
+    color: black;
+    border: 2px solid black;
+    width: 70px;
+    padding: 14px 25px;
+    text-align: center; 
+    text-decoration: none;
+    display: inline-block;
+}
+
+.button a:hover, .button a:active {
+    background-color: #b4b4b4;
+    border: 2px solid #b4b4b4;
+    width: 70px;
+}
+
+.title-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+
+.title-page{
+    text-align: center;
+    margin-top: -20px;
+}
+
+.main-body{
+    color: #61605f;
+    margin-left: 170px;
+    padding-top: 30px;
+    padding-bottom: 50px;
+    padding-left: 200px;
+    padding-right: 200px;
+    height: 100%;
+	background: white;
+    position: relative;
+    overflow: auto;
+    text-align: center;
+}
+
+.text-body{
+    padding-top: 40px;
+    text-align: justify;    
+}
