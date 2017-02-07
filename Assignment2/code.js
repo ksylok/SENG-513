@@ -20,8 +20,8 @@ function numChars(txt) {
 }
 
 function numWords(txt) {
-    // currently, words like let's is considered two words
-    return txt.replace(/\W/g, " ").split(/\s/g).filter(Boolean).length;
+    // currently, words like let's is considered one word
+    return txt.replace(/[^\w']/g, " ").split(/[\s]/g).filter(Boolean).length;
 }
 
 function numLines(txt) {
@@ -41,7 +41,7 @@ function maxLineLength(txt) {
     var maxLine, charNum;
     for (i in lines) {
         charNum = lines[i].match(/[\s\S]/g).length;
-        if (i === 0) {
+        if (i == 0) {
             maxLine = charNum;
         }
         else{
@@ -54,7 +54,7 @@ function maxLineLength(txt) {
 }
 
 function findPalindromes(txt) {
-    var wordArray = txt.toLowerCase().replace(/\W/g, " ").split(/\s/g).filter(Boolean);
+    var wordArray = txt.toLowerCase().replace(/[^\w']/g, " ").replace("'", "").split(/\s/g).filter(Boolean);
     var palindromes = [];
     var reverseWord;
     for (i in wordArray) {
@@ -69,15 +69,15 @@ function findPalindromes(txt) {
 }
 
 function longestWords(txt) {
-    var wordArray = txt.toLowerCase().replace(/\W/g, " ").split(/\s/g).filter(Boolean);
+    var wordArray = txt.toLowerCase().replace(/[^\w']/g, " ").split(/\s/g).filter(Boolean);
     wordArray.sort(); // alphabetical sort
-    var longestWords = wordArray.sort(function(a, b) {return b.length - a.length;}).slice(0, 9);
+    var longestWords = wordArray.sort(function(a, b) {return b.length - a.length;}).slice(0, 10);
    
     return longestWords;
 }
 
 function frequentWords(txt) {
-    var wordArray = txt.toLowerCase().replace(/\W/g, " ").split(/\s/g).filter(Boolean);
+    var wordArray = txt.toLowerCase().replace(/[^\w']/g, " ").split(/\s/g).filter(Boolean);
     wordArray.sort();
     var wordMap = [];
     var prevKey = null;
@@ -102,7 +102,7 @@ function frequentWords(txt) {
     wordMap.push({word: prevKey, count: count});
     
     var sortedCounts, frequentWords = [];
-    sortedCounts = wordMap.sort(function(a, b) {return b.count - a.count;}).splice(0, 9);
+    sortedCounts = wordMap.sort(function(a, b) {return b.count - a.count;}).splice(0, 10);
     for (i in sortedCounts){
         frequentWords.push(sortedCounts[i].word+'('+sortedCounts[i].count+')');
     }
