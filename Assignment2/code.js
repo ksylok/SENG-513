@@ -9,9 +9,9 @@ function getStats(txt) {
         nNonEmptyLines: numNonEmptyLines(txt),
         averageWordLength: avgWordLength(txt),
         maxLineLength: maxLineLength(txt),
-        palindromes: findPalindromes(txt), //["12321", "kayak", "mom"],
-        longestWords: longestWords(txt), //["xxxxxxxxx", "123444444"],
-        mostFrequentWords: frequentWords(txt) //[ "hello(7)", "world(1)" ]
+        palindromes: findPalindromes(txt),
+        longestWords: longestWords(txt),
+        mostFrequentWords: frequentWords(txt)
     };
 }
 
@@ -124,5 +124,4 @@ function frequentWords(txt) {
         frequentWords.push(sortedCounts[i].word+'('+sortedCounts[i].count+')');
     }
     return frequentWords;
-    //return wordArray.size;
 }
