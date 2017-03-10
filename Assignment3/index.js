@@ -6,7 +6,7 @@ var port = process.env.PORT || 3000;
 var history = [];
 var clientList = []; // dictionary list
 var timestamp;
-//var index;
+var nicknameList = [];
 
 http.listen(port, function () {
     console.log('listening on port', port);
@@ -26,12 +26,15 @@ io.on('connection', function (socket) {
         nickname: randomName(clientID),
         nameColour: '000000'
     });
+    nicknameList.push(randomName(clientID));
     
-    let index = indexOfClient(clientID);
+    let index = indexOfClient(clientID, 'clientKey');
     console.log('a user connected: ' + clientList[index].clientKey);
     
     // send to all but joining user
     socket.broadcast.emit('notice', {time: pollTime(), chatNotice: clientList[index].nickname + ' has joined the room'});
+    
+    printList(clientList);
     
     // send history chat to recently connected user
     if (history.size != 0) {
@@ -43,32 +46,29 @@ io.on('connection', function (socket) {
     
     // --------------------------------------- CHAT --------------------------------------- //
     socket.on('chat', function(msg){
-        //index = indexOfClient(clientID);
-        msg.userInfo = clientList[indexOfClient(clientID)];
+        msg.userInfo = clientList[indexOfClient(clientID, 'clientKey')];
         msg.time = pollTime();
         
-        emitMessage(msg);
-        
+        let save = emitMessage(msg);
+        // save regular messages into history log
+        if (save){
+            history.push(msg);
+        }
         console.log(msg);
-        history.push(msg);
     });
     
     // ------------------------------------ DISCONNECT ------------------------------------ //
     socket.on('disconnect', function(){
-        //index = indexOfClient(clientID);
-        console.log('user disconnected: ' + clientList[indexOfClient(clientID)].clientKey);
-        io.emit('notice', {time: pollTime(), chatNotice: clientList[index].nickname + ' has left the room'});
+        console.log('user disconnected: ' + clientList[indexOfClient(clientID, 'clientKey')].clientKey);
+        io.emit('notice', {time: pollTime(), chatNotice: clientList[indexOfClient(clientID, 'clientKey')].nickname + ' has left the room'});
         
-        if (index > -1){
-            clientList.splice(index, 1);
+        if (indexOfClient(clientID, 'clientKey') > -1){
+            clientList.splice(indexOfClient(clientID, 'clientKey'), 1);
         }
         
         // emit remaining list of people
-        if (clientList.size != 0){
-            for (let i = 0; i < clientList.length; i++){
-                console.log('users left: ' + clientList[i].clientKey);   
-            }
-        }
+        printList(clientList);
+        
     });
 });
 
@@ -85,27 +85,62 @@ function randomName(id){
     return name.substring(5, 11);
 }
 
-// checks for \nickname or \nickcolor commands before emitting message
+// checks for /nickname or /nickcolor commands before emitting message
 function emitMessage(msg){
     if(msg.message.includes("/nickcolor")){
-        console.info('-------------- set colour! ----------------');
         let tuple = msg.message.split(" ");
-        msg.userColour = tuple[1];
+        msg.userInfo.nameColour = tuple[1];
+        io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Your nickname colour has been updated'});
+        console.info('-------------- set colour: ' + msg.userInfo.nameColour + ' ----------------');
     }
     else if(msg.message.includes("/nick")){
-        console.info('-------------- set nickname! ----------------');
+        let tuple = msg.message.split(" ");
+        
+        // only save nickname if it doesn't already exist as someone else's
+        if (indexOfClient(tuple[1], 'nickname') == -1){
+            
+            // replace nickname
+            clientList[indexOfClient(msg.userInfo.clientKey, 'clientKey')].nickname = tuple[1];
+            
+            msg.userInfo.nickname = tuple[1];
+            io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Your name is now set to: ' + msg.userInfo.nickname});
+            
+            // update user nickname list
+            printList(clientList);
+        }
+        else{
+            io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Nickname already exists, please choose another.'});
+        }
+        console.info('-------------- set nickname: ' + msg.userInfo.nickname + ' ----------------');
     }
     else{
         io.emit('chat', msg);
+        return 1;
     }
 }
 
 // returns index of user with clientKey in clientLlist
-function indexOfClient(id){
+function indexOfClient(id, key){
     for (let i = 0; i < clientList.length; i++){
-        if(clientList[i].clientKey === id){
-            return i;
+        if(key === 'clientKey'){
+            if(clientList[i].clientKey.toLowerCase() === id.toLowerCase()){
+                return i;
+            }
+        }
+        else if(key === 'nickname'){
+            if(clientList[i].nickname.toLowerCase() === id.toLowerCase()){
+                return i;
+            }
         }
     }
     return -1;    
+}
+
+function printList(list){
+    if (list.size != 0){
+        for (let i = 0; i < list.length; i++){
+            console.log('updating name list: ' + list[i].nickname);
+            io.emit('updatelist', {user: list[i]});
+        }
+    }
 }

@@ -5,6 +5,8 @@ $(function() {
     
     $('form').submit(function(){
 	   socket.emit('chat', { message: $('#m').val()});
+        socket.emit('notice', { message: $('#m').val()});
+        socket.emit('nickname', { message: $('#m').val()});
 	   $('#m').val('');
 	   return false;
     });
@@ -13,11 +15,10 @@ $(function() {
         var hexcolor = msg.userInfo.nameColour;
         // messages sent by user is bolded, otherwise regular style
         if(msg.userInfo.clientKey === socket.io.engine.id){
-            $('#messages').append($('<li>').html(msg.time + "  ||  <b><font color=\"" + hexcolor + "\">" + msg.userInfo.nickname 
-                                                 + "</font>: " + msg.message + "</b>"));
+            $('#messages').append($('<li>').html(msg.time + "  ||  <b><font color=\"" + hexcolor + "\">" + msg.userInfo.nickname + "</font>: " + msg.message + "</b>"));
         }
         else{
-            $('#messages').append($('<li>').html(msg.time + "  ||  <b><font color=\"" + hexcolor + "\">" + msg.userInfo.nickname + "</b>: " + msg.message));
+            $('#messages').append($('<li>').html(msg.time + "  ||  <b><font color=\"" + hexcolor + "\">" + msg.userInfo.nickname + "</font></b>: " + msg.message));
         }
     });
     
@@ -27,6 +28,10 @@ $(function() {
     
     socket.on('nickname', function(msg){
 	   $('#messages').append($('<li>').html('<b><i>' + msg.nickname + '</b></i>'));
-        //nickname = msg.nickname.slice(-6);
+    });
+    
+    socket.on('updatelist', function(msg){
+        let hexcolor = msg.user.nameColour;
+	   $('#userlist').append($('<li>').html("<b><font color=\"" + hexcolor + "\">" + msg.user.nickname + "</font>"));
     });
 });
