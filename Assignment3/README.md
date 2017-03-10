@@ -1,7 +1,14 @@
-# chat-example
+# Assignment 3 - Chat System using Socket.io and Node.js
 
-This is the source code for a very simple chat example used for 
-the [Getting Started](http://socket.io/get-started/chat/) guide 
-of the Socket.IO website.
+## Getting Started
 
-Please refer to it to learn how to run this application.
+In root directory:
+	
+    npm install
+    
+To start server:
+	
+	node server.js
+
+To start clients:
+Navigate to http://localhost:3000
