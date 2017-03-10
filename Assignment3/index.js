@@ -34,6 +34,7 @@ io.on('connection', function (socket) {
     // send to all but joining user
     socket.broadcast.emit('notice', {time: pollTime(), chatNotice: clientList[index].nickname + ' has joined the room'});
     
+    // update new user list
     printList(clientList);
     
     // send history chat to recently connected user
@@ -89,8 +90,12 @@ function randomName(id){
 function emitMessage(msg){
     if(msg.message.includes("/nickcolor")){
         let tuple = msg.message.split(" ");
+        
         msg.userInfo.nameColour = tuple[1];
         io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Your nickname colour has been updated'});
+        
+        // update user list on application
+        printList(clientList);
         console.info('-------------- set colour: ' + msg.userInfo.nameColour + ' ----------------');
     }
     else if(msg.message.includes("/nick")){
@@ -99,13 +104,12 @@ function emitMessage(msg){
         // only save nickname if it doesn't already exist as someone else's
         if (indexOfClient(tuple[1], 'nickname') == -1){
             
-            // replace nickname
-            clientList[indexOfClient(msg.userInfo.clientKey, 'clientKey')].nickname = tuple[1];
-            
+            // replace nickname            
             msg.userInfo.nickname = tuple[1];
+            
             io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Your name is now set to: ' + msg.userInfo.nickname});
             
-            // update user nickname list
+            // update user list on application
             printList(clientList);
         }
         else{
@@ -119,7 +123,7 @@ function emitMessage(msg){
     }
 }
 
-// returns index of user with clientKey in clientLlist
+// returns index of user with specific key value in clientLlist
 function indexOfClient(id, key){
     for (let i = 0; i < clientList.length; i++){
         if(key === 'clientKey'){
@@ -138,9 +142,6 @@ function indexOfClient(id, key){
 
 function printList(list){
     if (list.size != 0){
-        for (let i = 0; i < list.length; i++){
-            console.log('updating name list: ' + list[i].nickname);
-            io.emit('updatelist', {user: list[i]});
-        }
+        io.emit('updatelist', {userList: list});
     }
 }

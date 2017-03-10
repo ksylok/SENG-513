@@ -30,8 +30,12 @@ $(function() {
 	   $('#messages').append($('<li>').html('<b><i>' + msg.nickname + '</b></i>'));
     });
     
+    // clears user list, and prints new one
     socket.on('updatelist', function(msg){
-        let hexcolor = msg.user.nameColour;
-	   $('#userlist').append($('<li>').html("<b><font color=\"" + hexcolor + "\">" + msg.user.nickname + "</font>"));
+        $('#userlist').empty();
+        for (let i = 0; i < msg.userList.length; i++){
+            let hexcolor = msg.userList[i].nameColour;
+            $('#userlist').append($('<li>').html("<b><font color=\"" + hexcolor + "\">" + msg.userList[i].nickname + "</font>"));   
+        }
     });
 });
