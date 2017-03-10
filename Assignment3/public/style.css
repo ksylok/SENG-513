@@ -3,10 +3,12 @@ html {
 }
 body { 
     font: 13px Helvetica, Arial;
-    margin: 0; padding: 0;  height: 100%; width: 100%;
-    box-sizing: border-box; border: 20px solid #ab99ff; border-bottom: 10px solid #ab99ff;
+    margin: 0; padding-top: 0;  height: 100%; width: 100%;
+    box-sizing: border-box; 
+    border: 20px solid #803b4b; 
+    border-top: 30px solid #803b4b;
+    border-bottom: 10px solid #803b4b;
     position: relative;
-    /* Scroll bar implementation */
 }
 
 .chat{
@@ -15,21 +17,17 @@ body {
     position: absolute;
     padding: 0;
     margin: 0;
-    overflow-y: scroll;
-    display: table-cell;
-    vertical-align: bottom;
 }
 
 .userform{
     width: calc(30% - 21px); 
-    height: calc( 100% - 90px );
+    height: calc( 100% - 100px );
     position: fixed;
     padding: 0;
     margin: 0;
-    overflow-y: scroll;
     right: 20px;
-    top: 20px;
-    border-left: 10px solid #ab99ff;
+    top: 30px;
+    border-left: 10px solid #803b4b;
 }
 
 .inputform{
@@ -38,32 +36,36 @@ body {
     margin: 0;
     padding: 0;
     position: absolute; bottom: 0px;
-    background: #ab99ff;
+    background: #803b4b;
 }
-form { 
-    align-content: center;
-}
-
-form input { left: 20px; bottom: 20px; width: calc(100% - 200px); position: absolute;}
-form button { width: 9%; background: rgb(130, 224, 255); border: none; position: absolute;
-    padding: 10px; top: 12px; right: 20px;}
-
-#userlist {
-    list-style-type: none; font-family: "Lucida Console", Monaco, monospace;
-    padding: 0; margin: 0; 
-    height: 100%;
-    width: 100%;
-    position: absolute; bottom: 0px; box-sizing: border-box; 
-}
-#userlist li { padding: 5px 10px; }
 
 #messages {
     list-style-type: none; font-family: "Lucida Console", Monaco, monospace;
     padding: 0; margin: 0; 
     height: 100%;
     width: 100%;
-    position: absolute; bottom: 0px; box-sizing: border-box; 
+    position: absolute; display: flex; flex-direction: column-reverse;
+    overflow-y: scroll;
 }
 
-#messages li { padding: 5px 10px; word-wrap: break-word;}
+#messages li { padding: 5px 10px; word-wrap: break-word; }
 #messages li:nth-child(odd) { background: #eee; word-wrap: break-word;}
+
+#userlist {
+    list-style-type: none; font-family: "Lucida Console", Monaco, monospace;
+    padding: 0; margin: 0; 
+    height: 100%;
+    width: 100%;
+    position: absolute; display: flex; flex-direction: column-reverse;
+    overflow-y: scroll;
+}
+#userlist li { padding: 5px 10px; }
+
+
+form { 
+    align-content: center;
+}
+
+form input { left: 20px; bottom: 20px; width: calc(100% - 200px); position: absolute;}
+form button { width: 9%; background: #877c7f; border: none; position: absolute;
+    padding: 10px; top: 12px; right: 20px;}
