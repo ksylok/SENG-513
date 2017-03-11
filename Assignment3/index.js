@@ -1,12 +1,14 @@
 var express = require('express');
 var app = express();
+//var cookieParser = require('cookie-parser');
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 3000;
 var history = [];
 var clientList = []; // dictionary list
 var timestamp;
-var nicknameList = [];
+var cookieList = [];
+var index;
 
 http.listen(port, function () {
     console.log('listening on port', port);
@@ -18,17 +20,52 @@ app.use(express.static(__dirname + '/public'));
 
 // listen to 'chat' messages
 io.on('connection', function (socket) {
+    
     var clientID = socket.id;
+    var userCookie;
     
-    // set default name and default name colour
-    clientList.push({
-        clientKey: clientID,
-        nickname: randomName(clientID),
-        nameColour: '000000'
-    });
-    nicknameList.push(randomName(clientID));
-    
-    let index = indexOfClient(clientID, 'clientKey');
+    // request cookie from client
+    io.sockets.connected[clientID].emit('getCookie', '');   
+    socket.on('sendCookie', function(msg){
+        console.log('COOKIE: ' + msg.item);
+        if (msg.item == ""){
+            userCookie = clientID;
+            io.sockets.connected[clientID].emit('setCookie', {cookie: userCookie, nickname: randomName(clientID)});
+            
+            var newUser = {
+                clientKey: clientID,
+                nickname: randomName(clientID),
+                nameColour: '000000',
+                cookie: userCookie
+            };
+            
+            // create new user
+            clientList.push(newUser);
+            cookieList.push(newUser);
+            
+            index = indexOfClient(userCookie, 'cookie');
+            console.log('a user connected: ' + clientList[index].clientKey);
+        }
+        else{   // user already exists, search for user info
+            console.log('A user connected: ' + clientID);
+            userCookie = msg.item;
+            console.log('FIND MY COOKIE ' + userCookie);
+            if (userExists(userCookie)){
+                console.log('user exists!');
+            }
+            else{
+                for (var i = 0; i < cookieList.length; i++){
+                    if(cookieList[i].cookie === userCookie){
+                        clientList.push(cookieList[i]);
+                        console.log('push!');
+                    } 
+                }
+            }
+            index = indexOfClient(userCookie, 'cookie');
+            socket.emit('updateNickname', {nickname: clientList[index].nickname});
+        }
+                    
+    console.log('index: ' + index);
     console.log('a user connected: ' + clientList[index].clientKey);
     
     // send to all but joining user
@@ -44,13 +81,16 @@ io.on('connection', function (socket) {
         }
     }
     io.sockets.connected[clientID].emit('nickname', {nickname: 'Your default name is: ' + clientList[index].nickname});
+        
+    });
+   
     
     // --------------------------------------- CHAT --------------------------------------- //
     socket.on('chat', function(msg){
-        msg.userInfo = clientList[indexOfClient(clientID, 'clientKey')];
+        msg.userInfo = clientList[index];
         msg.time = pollTime();
         
-        let save = emitMessage(msg);
+        let save = emitMessage(socket, msg);
         // save regular messages into history log
         if (save){
             history.push(msg);
@@ -60,16 +100,17 @@ io.on('connection', function (socket) {
     
     // ------------------------------------ DISCONNECT ------------------------------------ //
     socket.on('disconnect', function(){
-        console.log('user disconnected: ' + clientList[indexOfClient(clientID, 'clientKey')].clientKey);
-        io.emit('notice', {time: pollTime(), chatNotice: clientList[indexOfClient(clientID, 'clientKey')].nickname + ' has left the room'});
-        
-        if (indexOfClient(clientID, 'clientKey') > -1){
-            clientList.splice(indexOfClient(clientID, 'clientKey'), 1);
+        if (clientList.size !== 0){
+            console.log('user disconnected: ' + clientList[index].clientKey);
+            io.emit('notice', {time: pollTime(), chatNotice: clientList[index].nickname + ' has left the room'});
+
+            if (index > -1){
+                clientList.splice(index, 1);
+            }
+
+            // emit remaining list of people
+            printList(clientList);
         }
-        
-        // emit remaining list of people
-        printList(clientList);
-        
     });
 });
 
@@ -87,12 +128,12 @@ function randomName(id){
 }
 
 // checks for /nickname or /nickcolor commands before emitting message
-function emitMessage(msg){
+function emitMessage(socket, msg){
     if(msg.message.includes("/nickcolor")){
         let tuple = msg.message.split(" ");
         
         msg.userInfo.nameColour = tuple[1];
-        io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Your nickname colour has been updated'});
+        socket.emit('notice', {time: pollTime(), chatNotice: 'Your nickname colour has been updated'});
         
         // update user list on application
         printList(clientList);
@@ -106,14 +147,14 @@ function emitMessage(msg){
             
             // replace nickname            
             msg.userInfo.nickname = tuple[1];
-            
-            io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Your name is now set to: ' + msg.userInfo.nickname});
+            socket.emit('updateNickname', {nickname: msg.userInfo.nickname});
+            socket.emit('notice', {time: pollTime(), chatNotice: 'Your name is now set to: ' + msg.userInfo.nickname});
             
             // update user list on application
             printList(clientList);
         }
         else{
-            io.sockets.connected[msg.userInfo.clientKey].emit('notice', {time: pollTime(), chatNotice: 'Nickname already exists, please choose another.'});
+            socket.emit('notice', {time: pollTime(), chatNotice: 'Nickname already exists, please choose another.'});
         }
         console.info('-------------- set nickname: ' + msg.userInfo.nickname + ' ----------------');
     }
@@ -136,6 +177,11 @@ function indexOfClient(id, key){
                 return i;
             }
         }
+        else if(key === 'cookie'){
+            if(clientList[i].cookie === id){
+                return i;
+            }
+        }
     }
     return -1;    
 }
@@ -144,4 +190,23 @@ function printList(list){
     if (list.size != 0){
         io.emit('updatelist', {userList: list});
     }
+}
+
+// find user that has specific cookie
+/*function findUser(cookie){
+    for (var i = 0; i < clientList.length; i++){
+        if (clientList[i].cookie === cookie){
+            return i;
+        }
+    }
+    return -1;
+}*/
+
+function userExists(cookie){
+    for (var i = 0; i < clientList.length; i++){
+        if (clientList[i].cookie === cookie){
+            return true;   
+        }
+    }
+    return false;    
 }
