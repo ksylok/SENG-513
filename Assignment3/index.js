@@ -28,18 +28,18 @@ io.on('connection', function (socket) {
     io.sockets.connected[clientID].emit('getCookie', '');   
     socket.on('sendCookie', function(msg){
         console.log('COOKIE: ' + msg.item);
-        if (msg.item == ""){
+        
+        // if no cookies exist for current user
+        if (msg.item == "" || !userExists(cookieList, msg.item)){
             userCookie = clientID;
             io.sockets.connected[clientID].emit('setCookie', {cookie: userCookie, nickname: randomName(clientID)});
-            
+            // create new user
             var newUser = {
                 clientKey: clientID,
                 nickname: randomName(clientID),
                 nameColour: '000000',
                 cookie: userCookie
             };
-            
-            // create new user
             clientList.push(newUser);
             cookieList.push(newUser);
             
@@ -47,26 +47,21 @@ io.on('connection', function (socket) {
             console.log('a user connected: ' + clientList[index].clientKey);
         }
         else{   // user already exists, search for user info
-            console.log('A user connected: ' + clientID);
+            console.log('a user connected: ' + clientID);
             userCookie = msg.item;
-            console.log('FIND MY COOKIE ' + userCookie);
-            if (userExists(userCookie)){
+            if (userExists(clientList, userCookie)){
                 console.log('user exists!');
             }
             else{
                 for (var i = 0; i < cookieList.length; i++){
                     if(cookieList[i].cookie === userCookie){
                         clientList.push(cookieList[i]);
-                        console.log('push!');
                     } 
                 }
             }
             index = indexOfClient(userCookie, 'cookie');
             socket.emit('updateNickname', {nickname: clientList[index].nickname});
         }
-                    
-    console.log('index: ' + index);
-    console.log('a user connected: ' + clientList[index].clientKey);
     
     // send to all but joining user
     socket.broadcast.emit('notice', {time: pollTime(), chatNotice: clientList[index].nickname + ' has joined the room'});
@@ -84,7 +79,6 @@ io.on('connection', function (socket) {
         
     });
    
-    
     // --------------------------------------- CHAT --------------------------------------- //
     socket.on('chat', function(msg){
         msg.userInfo = clientList[index];
@@ -192,19 +186,9 @@ function printList(list){
     }
 }
 
-// find user that has specific cookie
-/*function findUser(cookie){
-    for (var i = 0; i < clientList.length; i++){
-        if (clientList[i].cookie === cookie){
-            return i;
-        }
-    }
-    return -1;
-}*/
-
-function userExists(cookie){
-    for (var i = 0; i < clientList.length; i++){
-        if (clientList[i].cookie === cookie){
+function userExists(list, cookie){
+    for (var i = 0; i < list.length; i++){
+        if (list[i].cookie === cookie){
             return true;   
         }
     }
